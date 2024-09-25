@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/order_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,6 +13,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      initialRoute: OrderScreen.id,
+      routes: {
+        OrderScreen.id : (context)=> OrderScreen(),
+      },
     );
   }
 }

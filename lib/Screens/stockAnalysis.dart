@@ -1,106 +1,8 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_database/firebase_database.dart';
-// import 'package:firebase_core/firebase_core.dart';
-//
-// class StockAnalysis extends StatefulWidget{
-//   static String id = "Stock_Screen";
-//   const StockAnalysis({super.key});
-//
-//   @override
-//   State<StatefulWidget> createState() {
-//     return _StockAnalysis();
-//   }
-// }
-// class _StockAnalysis extends State<StockAnalysis>{
-//   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref().child('items');
-//   List<Map<String, dynamic>> _items = [];
-//   List<Map<String, dynamic>> _filteredItems = [];
-//   TextEditingController _searchController = TextEditingController();
-//   @override
-//   void initState(){
-//     super.initState();
-//     _fetchItemsFromDatabase();
-//     _searchController.addListener((){
-//       _filterItems();
-//     });
-//   }
-//   void _fetchItemsFromDatabase() {
-//     _dbRef.onValue.listen((event) {
-//       final data = event.snapshot.value as Map<dynamic, dynamic>?;
-//       if (data != null) {
-//         final List<Map<String, dynamic>> loadedItems = [];
-//         data.forEach((key, value) {
-//           loadedItems.add({
-//             'id': key,
-//             'name': value['name'],
-//           });
-//         });
-//         setState(() {
-//           _items = loadedItems;
-//           _filteredItems = loadedItems; // Initially, show all items
-//         });
-//       }
-//     });
-//   }
-//   Future<void> _addItem(String name) async {
-//     await _dbRef.push().set({'name': "Vaidant"});
-//   }
-//   void _filterItems() {
-//     final query = _searchController.text.toLowerCase();
-//     setState(() {
-//       _filteredItems = _items
-//           .where((item) => item['name'].toString().toLowerCase().contains(query))
-//           .toList();
-//     });
-//   }
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Stock Details'),
-//       ),
-//       body: Column(
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(8.0),
-//             child: TextField(
-//               controller: _searchController,
-//               decoration: InputDecoration(
-//                 labelText: 'Search',
-//                 border: OutlineInputBorder(),
-//               ),
-//             ),
-//           ),
-//           Expanded(
-//             child: _items.isEmpty
-//                 ? Center(child: CircularProgressIndicator())
-//                 : ListView.builder(
-//               itemCount: _filteredItems.length,
-//               itemBuilder: (context, index) {
-//                 return ListTile(
-//                   title: Text(_filteredItems[index]['name']),
-//                 );
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () {
-//           _addItem('Item ${_items.length + 1}');  // Add a new item
-//         },
-//         child: Icon(Icons.add),
-//       ),
-//     );
-//   }
-//   @override
-//   void dispose() {
-//     _searchController.dispose();
-//     super.dispose();
-//   }
-// }
 
 import 'package:flutter/material.dart';
+
+import '../UserWidgets/bottom_navigation_bar.dart';
+import '../Utilities/constants.dart';
 
 class StockAnalysis extends StatefulWidget {
   static String id = "Stock_Screen";
@@ -114,6 +16,8 @@ class StockAnalysis extends StatefulWidget {
 }
 
 class _StockAnalysis extends State<StockAnalysis> {
+  static int num = nameNavigation.indexOf(StockAnalysis.id);
+
   List<Map<String, dynamic>> _items = [];
   List<Map<String, dynamic>> _filteredItems = [];
   List<int> _itemsCount = [];
@@ -165,6 +69,8 @@ class _StockAnalysis extends State<StockAnalysis> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: PersistentBottomNavBar(selectedIndex: num, onItemTapped: (int value) { Navigator.popAndPushNamed(context, nameNavigation[value]); },),
+
       appBar: AppBar(
         title: Text('Stock Details'),
       ),

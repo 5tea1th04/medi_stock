@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/delivery_screen.dart';
+import 'package:medi_stock/Screens/home_screen.dart';
+import 'package:medi_stock/Screens/notification_screen.dart';
+import 'package:medi_stock/Screens/order_screen.dart';
+import 'package:medi_stock/Screens/stockAnalysis.dart';
 
 const kInputDecoration = InputDecoration(
   hintText: '',
@@ -19,3 +24,11 @@ const kInputDecoration = InputDecoration(
     borderRadius: BorderRadius.all(Radius.circular(32.0)),
   ),
 );
+
+ List<String> nameNavigation = <String>[
+  HomeScreen.id,
+  NotificationScreen.id,
+  StockAnalysis.id,
+  OrderScreen.id,
+  DeliveryScreen.id,
+];

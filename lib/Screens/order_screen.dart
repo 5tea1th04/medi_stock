@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../UserWidgets/bottom_navigation_bar.dart';
+import '../Utilities/constants.dart';
+
 class OrderScreen extends StatefulWidget {
-  static String id = "order_screen";const OrderScreen({super.key});
+  static String id = "order_screen";
+
+  const OrderScreen({super.key});
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  static int num = nameNavigation.indexOf(OrderScreen.id);
+
   String? selectedDistributor;
   List<Map<String, dynamic>> selectedMedicines = [{'medicine': null, 'count': 1}
   ]; // List to store selected medicines and their count
@@ -22,6 +29,8 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: PersistentBottomNavBar(selectedIndex: num, onItemTapped: (int value) { Navigator.popAndPushNamed(context, nameNavigation[value]); },),
+
       appBar: AppBar(
         title: Text(
           "ORDER",

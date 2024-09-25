@@ -9,10 +9,14 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   String? selectedDistributor;
-  int medicineCount = 1;
-  List<String?> selectedMedicines = [null]; // List to store selected medicines
+  List<Map<String, dynamic>> selectedMedicines = [{'medicine': null, 'count': 1}
+  ]; // List to store selected medicines and their count
 
-  List<String> distributors = ['Distributor A', 'Distributor B', 'Distributor C'];
+  List<String> distributors = [
+    'Distributor A',
+    'Distributor B',
+    'Distributor C'
+  ];
   List<String> medicines = ['Medicine A', 'Medicine B', 'Medicine C'];
 
   @override
@@ -23,98 +27,120 @@ class _OrderScreenState extends State<OrderScreen> {
           "ORDER",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Distributor Dropdown
-            DropdownButtonFormField<String>(
-              decoration: InputDecoration(labelText: 'Distributor'),
-              value: selectedDistributor,
-              onChanged: (newValue) {
-                setState(() {
-                  selectedDistributor = newValue;
-                });
-              },
-              items: distributors.map((distributor) {
-                return DropdownMenuItem(
-                  value: distributor,
-                  child: Text(distributor),
+      ),body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Distributor Dropdown
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(labelText: 'Distributor'),
+            value: selectedDistributor,
+            onChanged: (newValue) {
+              setState(() {
+                selectedDistributor = newValue;
+              });
+            },
+            items: distributors.map((distributor) {
+              return DropdownMenuItem(
+                value: distributor,
+                child: Text(distributor),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 20),
+
+          // Medicine Dropdowns with Add/Remove Buttons and Count
+          Expanded(
+            child: ListView.builder(
+              itemCount: selectedMedicines.length,
+              itemBuilder: (context, index) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                            labelText: 'Medicine ${index + 1}'),
+                        value: selectedMedicines[index]['medicine'],
+                        onChanged: (newValue){
+                          setState(() {
+                            selectedMedicines[index]['medicine'] = newValue;
+                          });
+                        },
+                        items: medicines.map((medicine) {
+                          return DropdownMenuItem(
+                            value: medicine,
+                            child: Text(medicine),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.remove),
+                          onPressed: () {
+                            if (selectedMedicines[index]['count'] > 1) {
+                              setState(() {
+                                selectedMedicines[index]['count']--;
+                              });
+                            }
+                          },
+                        ),
+                        Text('${selectedMedicines[index]['count']}'),
+                        IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: () {
+                            setState(() {
+                              selectedMedicines[index]['count']++;
+                            });
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            if (selectedMedicines.length > 1) {
+                              setState(() {
+                                selectedMedicines.removeAt(index);
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 );
-              }).toList(),
+              },
             ),
-            SizedBox(height: 20),
-
-            // Medicine Counter
-            Row(
-              children: [
-                Text('Select Medicines:'),
-                Spacer(),
-                IconButton(
-                  icon: Icon(Icons.remove),
-                  onPressed: () {
-                    if (medicineCount > 1) {
-                      setState(() {
-                        medicineCount--;
-                        selectedMedicines.removeLast();
-                      });
-                    }
-                  },
-                ),
-                Text('$medicineCount'),
-                IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: () {
-                    setState(() {
-                      medicineCount++;
-                      selectedMedicines.add(null);
-                    });
-                  },
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-
-            // Medicine Dropdowns
-            Expanded(
-              child: ListView.builder(
-                itemCount: medicineCount,
-                itemBuilder: (context, index) {
-                  return DropdownButtonFormField<String>(
-                    decoration:
-                    InputDecoration(labelText: 'Medicine ${index + 1}'),
-                    value: selectedMedicines[index],
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedMedicines[index] = newValue;
-                      });
-                    },
-                    items: medicines.map((medicine) {
-                      return DropdownMenuItem(
-                        value: medicine,
-                        child: Text(medicine),
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
-
-            // Order Now Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
+          ),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
                 onPressed: () {
-                  // Handle order submission
+                  setState(() {
+                    selectedMedicines.add({'medicine': null, 'count': 1});
+                  });
                 },
-                child: Text('Order Now'),
+                child: Text('Add'),
               ),
+            ],
+          ),
+
+          // Order Now Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // Handle order submission
+              },
+              child: Text('Order Now'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    ),
     );
   }
 }

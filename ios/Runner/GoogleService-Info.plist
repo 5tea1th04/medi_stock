@@ -26,5 +26,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:647686125492:ios:79ead2fa1f1e3035a6e4e1</string>
+	<key>DATABASE_URL</key>
+	<string>https://medistock-74644-default-rtdb.asia-southeast1.firebasedatabase.app</string>
 </dict>
 </plist>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/login_screen.dart';
 import 'package:medi_stock/Screens/notification_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
 import 'package:medi_stock/Screens/stockAnalysis.dart';
@@ -18,12 +19,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: StockAnalysis.id,
+      initialRoute: LoginScreen.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => OrderScreen(),
         MyBottomNavigationBar.id : (context) => MyBottomNavigationBar(),
         StockAnalysis.id : (context) => StockAnalysis(),
+        LoginScreen.id : (context) => LoginScreen(),
       },
     );
   }

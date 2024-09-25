@@ -1,42 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:medi_stock/Screens/order_screen.dart';
+import 'package:medi_stock/Utilities/constants.dart';
 
 class NewProfileScreen extends StatefulWidget {
   static String id = "new_profile_screen";
+  const NewProfileScreen({Key? key}) : super(key: key);
+
   @override
   State<NewProfileScreen> createState() => _NewProfileScreenState();
 }
 
 class _NewProfileScreenState extends State<NewProfileScreen> {
-  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
+  late DatabaseReference _dbRef; // Reference to the Firebase Database
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  List<Map<dynamic, dynamic>> _users = []; // To store retrieved users
 
   @override
   void initState() {
     super.initState();
-    _retrieveUsers();
+    _initializeFirebase(); // Initialize Firebase
   }
 
+  Future<void> _initializeFirebase() async {
+    final FirebaseApp app = await Firebase.initializeApp(
+      name: 'myApp', // Name your Firebase app instance
+      options: FirebaseOptions(
+        apiKey: "your_api_key", // Your API key
+        appId: "your_app_id", // Your App ID
+        messagingSenderId: "your_messaging_sender_id", // Your Messaging Sender ID
+        projectId: "your_project_id", // Your Project ID
+        databaseURL: "https://medistock-74644-default-rtdb.asia-southeast1.firebasedatabase.app", // Your Database URL
+      ),
+    );
 
+    _dbRef = FirebaseDatabase.instanceFor(app: app).ref(); // Set the database reference
+  }
 
-  void _retrieveUsers() {
-    _dbRef.onValue.listen((event) {
-      final data = event.snapshot.value as Map<dynamic, dynamic>?;
-      if (data != null) {
-        setState(() {
-          _users = data.entries.map((entry) {
-            return {
-              'id': entry.key,
-              'name': entry.value['name'],
-              'location': entry.value['location'],
-            };
-          }).toList();
-        });
-      }
-    });
+  // Function to save data to Firebase
+  void _saveProfile() {
+    String name = _nameController.text;
+    String location = _locationController.text;
+
+    if (name.isNotEmpty && location.isNotEmpty) {
+      String userId = _dbRef.push().key!;
+
+      _dbRef.child(userId).set({
+        'name': name,
+        'location': location,
+      }).then((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile saved successfully!')),
+        );
+        _nameController.clear();
+        _locationController.clear();
+      }).catchError((onError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save profile!')),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter both name and location')),
+      );
+    }
   }
 
   @override
@@ -60,32 +87,8 @@ class _NewProfileScreenState extends State<NewProfileScreen> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: (){
-                Map<String,dynamic> data = {
-                  "name":_nameController.text.toString(),
-                  "location":_locationController.text.toString(),
-                };
-                _dbRef.child("users").push().set(data).then((value){
-                  Navigator.pushNamed(context, OrderScreen.id);
-                });
-              },
+              onPressed: _saveProfile,
               child: Text('Save Profile'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Saved Profiles:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _users.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_users[index]['name']),
-                    subtitle: Text(_users[index]['location']),
-                  );
-                },
-              ),
             ),
           ],
         ),

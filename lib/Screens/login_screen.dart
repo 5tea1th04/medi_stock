@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/home_screen.dart';
 import 'package:medi_stock/Screens/new_profile_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
 import 'package:medi_stock/Utilities/authServices.dart';
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   buttonFunction: () async{
                     final message = await AuthService().login(email: _emailController.text, password: _passwordController.text);
                     if(message!.contains("Success")) {
-                      Navigator.popAndPushNamed(context, NewProfileScreen.id);
+                      Navigator.popAndPushNamed(context, HomeScreen.id);
                     }
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                   },
@@ -87,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   buttonFunction: () async{
                     final message = await AuthService().registration(email: _emailController.text, password: _passwordController.text);
                     if(message!.contains("Success")) {
-                      Navigator.popAndPushNamed(context, NewProfileScreen.id);
+                      Navigator.popAndPushNamed(context, HomeScreen.id);
                     }
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                   },

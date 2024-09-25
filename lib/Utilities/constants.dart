@@ -6,8 +6,10 @@ import 'package:medi_stock/Screens/order_screen.dart';
 import 'package:medi_stock/Screens/stockAnalysis.dart';
 
 const kInputDecoration = InputDecoration(
+  labelStyle: TextStyle(color: Colors.white),
   hintText: '',
-  hintStyle: TextStyle(color : Colors.white70),
+  hintStyle: TextStyle(color : Colors.grey),
+  fillColor: Colors.white,
   contentPadding:
   EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
   border: OutlineInputBorder(

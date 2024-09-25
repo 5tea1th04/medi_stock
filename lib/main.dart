@@ -24,13 +24,13 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: HomeScreen.id,
+      initialRoute: LoginScreen.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => NotificationScreen(),
         StockAnalysis.id : (context) => StockAnalysis(),
         LoginScreen.id : (context) => LoginScreen(),
-        NewProfileScreen.id : (context) => NewProfileScreen(),
+        // NewProfileScreen.id : (context) => NewProfileScreen(),
         DeliveryScreen.id : (context) => DeliveryScreen(),
         HomeScreen.id : (context) => HomeScreen(),
       },

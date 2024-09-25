@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:medi_stock/Utilities/constants.dart';
+
 
 class NewProfileScreen extends StatefulWidget {
   static String id = "new_profile_screen";

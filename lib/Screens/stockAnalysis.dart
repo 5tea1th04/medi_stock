@@ -1,4 +1,5 @@
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 import '../UserWidgets/bottom_navigation_bar.dart';
@@ -16,53 +17,114 @@ class StockAnalysis extends StatefulWidget {
 }
 
 class _StockAnalysis extends State<StockAnalysis> {
+  late DatabaseReference databaseRef;
   static int num = nameNavigation.indexOf(StockAnalysis.id);
 
-  List<Map<String, dynamic>> _items = [];
-  List<Map<String, dynamic>> _filteredItems = [];
-  List<int> _itemsCount = [];
-  List<int> _filteredItemsCount = [];
   TextEditingController _searchController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _stockController = TextEditingController();
+
+  Future<void> initializeFirebase() async {
+    final FirebaseApp app = await Firebase.initializeApp(
+      name: 'myApp', // Name your Firebase app instance
+      options: FirebaseOptions(
+        apiKey: "your_api_key", // Your API key
+        appId: "your_app_id", // Your App ID
+        messagingSenderId: "your_messaging_sender_id", // Your Messaging Sender ID
+        projectId: "your_project_id", // Your Project ID
+        databaseURL: "https://medistock-74644-default-rtdb.asia-southeast1.firebasedatabase.app", // Your Database URL
+      ),
+    );
+    databaseRef = FirebaseDatabase.instanceFor(app: app).ref().child('medicine');
+  }
+
+  List<Map<String, dynamic>> _items = [];
+  List<Map<String, dynamic>> _filteredItems = [];
+  Map<String, dynamic>? _selectedMedicine;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _loadItems(); // Load hardcoded items
+    initializeFirebase().then((_) { // Ensure initializeFirebase completes
+      _loadItems();
+    });
     _searchController.addListener(() {
       _filterItems();
     });
   }
 
-  // Load predefined list of items
   void _loadItems() {
-    final List<Map<String, dynamic>> loadedItems = [
-      {'id': '1', 'name': 'Medicine 1', 'stock': 30},
-      {'id': '2', 'name': 'Medicine 2', 'stock': 100},
-      {'id': '3', 'name': 'Medicine 3', 'stock': 50},
-      {'id': '4', 'name': 'Medicine 4', 'stock': 80},
-      {'id': '5', 'name': 'Medicine 5', 'stock': 320},
-    ];
-    setState(() {
-      _items = loadedItems;
-      _filteredItems = loadedItems;
-      _itemsCount = loadedItems.map<int>((item) => item['stock']).toList();
-      _filteredItemsCount =
-          loadedItems.map<int>((item) => item['stock']).toList();
-      ; // Initially show all items
+    databaseRef.onValue.listen((event) {
+      final data = event.snapshot.value;
+      if (data != null) {
+        final Map<dynamic, dynamic> map = data as Map<dynamic, dynamic>;
+        final List<Map<String, dynamic>> loadedItems = [];
+        map.forEach((key, value) {
+          loadedItems.add({
+            'id': key,
+            'name': key, // Use the key as the name
+            'stock': value, // Use the value as the stock
+          });
+        });
+        setState(() {
+          _items = loadedItems;
+          _filteredItems = loadedItems;
+        });
+      } else {
+        setState(() {
+          _items = [];
+          _filteredItems = [];
+        });
+      }
     });
   }
 
-  // Filter items based on the search query
   void _filterItems() {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredItems = _items
-          .where(
-              (item) => item['name'].toString().toLowerCase().contains(query))
+          .where((item) =>
+          item['name'].toString().toLowerCase().contains(query))
           .toList();
+    });
+  }
+
+  void _addItem(String name, int stock) {
+    final newItem = {
+      'name': name,
+      'stock': stock,
+    };
+    databaseRef.child(name).set(stock).then((_) {
+      setState(() {
+        _items.add({
+          'id': name,
+          'name': name,
+          'stock': stock,
+        });
+        _filteredItems = List.from(_items); // Update _filteredItems
+      });
+    });
+  }
+
+  // Update stock of the item
+  void _updateItem(String id, int stock) {
+    databaseRef.child(id).set(stock).then((_) {
+      setState(() {
+        _items = _items.map((item) {
+          if (item['id'] == id) {
+            return {'id': id, 'name': id, 'stock': stock};
+          }
+          return item;
+        }).toList();
+        _filteredItems = _filteredItems.map((item) {
+          if (item['id'] == id) {
+            return {'id': id, 'name': id, 'stock': stock};
+          }
+          return item;
+        }).toList();
+        _selectedMedicine = null; // Clear the selected medicine after update
+      });
     });
   }
 
@@ -109,97 +171,186 @@ class _StockAnalysis extends State<StockAnalysis> {
                   title: Row(
                     children: [
                       Expanded(
-                        child: _filteredItems[index]['stock'] < 80?Text(_filteredItems[index]['name'],style: const TextStyle(color: Colors.red),):Text(_filteredItems[index]['name']),
+                        child: _filteredItems[index]['stock'] < 80
+                            ? Text(
+                          _filteredItems[index]['name'],
+                          style: const TextStyle(color: Colors.red),
+                        )
+                            : Text(_filteredItems[index]['name']),
                       ),
                       _filteredItems[index]['stock'] < 80
-                          ? Text(_filteredItems[index]['stock'].toString(), style: const TextStyle(color: Colors.red),)
+                          ? Text(
+                        _filteredItems[index]['stock'].toString(),
+                        style: const TextStyle(color: Colors.red),
+                      )
                           : Text(_filteredItems[index]['stock'].toString()),
                     ],
                   ),
+                  onTap: () {
+                    setState(() {
+                      _selectedMedicine = _filteredItems[index];
+                    });
+                  },
+                  selected: _selectedMedicine != null &&
+                      _selectedMedicine!['id'] == _filteredItems[index]['id'],
+                  selectedTileColor: Colors.grey[300],
                 );
               },
             ),
           ),
+          _selectedMedicine != null
+              ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text('Selected Medicine: ${_selectedMedicine!['name']}'),
+                Text('Current Stock: ${_selectedMedicine!['stock']}'),
+                ElevatedButton(
+                  onPressed: () {
+                    _showUpdateDialog(
+                        _selectedMedicine!['id'], _selectedMedicine!['stock']);
+                  },
+                  child: Text('Edit Stock'),
+                ),
+              ],
+            ),
+          )
+              : Container(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showDialog(context: context,
-              builder: (context)
-              {
-                return Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  elevation: 0.0,
-                  backgroundColor: Colors.transparent,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    padding: EdgeInsets.all(20.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextFormField(
-                            decoration: InputDecoration(labelText: 'Name'),
-                            controller: _nameController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a name';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            decoration: InputDecoration(labelText: 'Stock'),
-                            controller: _stockController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a stock quantity';
-                              }
-                              return null;
-                            },
-                          ),
-                          SizedBox(height: 20.0),
-                          ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                _addItem(_nameController.text,
-                                    int.parse(_stockController.text));
-                                Navigator.pop(context);
-                              }
-                            },
-                            child: Text('Add Item'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              });
+          _showAddDialog();
         },
         child: Icon(Icons.add),
       ),
     );
   }
-  void _addItem(String name,int stock) {
-    final newItem = {
-      'id': (_items.length + 1).toString(),
-      'name': name,
-      'stock': stock,
-    };
-    setState(() {
-      _items.add(newItem);
-      _filteredItems.add(newItem);
-      _itemsCount.add(0);
-      _filteredItemsCount.add(0);
-    });
+
+  // Show dialog to update stock
+  void _showUpdateDialog(String id, int stock) {
+    _nameController.text = id;
+    _stockController.text = stock.toString();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          elevation: 0.0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            padding: EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Medicine Name'),
+                    controller: _nameController,
+                    readOnly: true,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Stock'),
+                    controller: _stockController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a stock quantity';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _updateItem(
+                            _nameController.text, int.parse(_stockController.text));
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Text('Update Stock'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
+  // Show dialog to add a new item
+  void _showAddDialog() {
+    _nameController.clear();
+    _stockController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          elevation: 0.0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            padding: EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Name'),
+                    controller: _nameController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a name';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Stock'),
+                    controller: _stockController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a stock quantity';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _addItem(
+                            _nameController.text, int.parse(_stockController.text));
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Text('Add Item'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {

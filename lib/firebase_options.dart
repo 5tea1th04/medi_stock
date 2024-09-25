@@ -55,6 +55,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '647686125492',
     projectId: 'medistock-74644',
     storageBucket: 'medistock-74644.appspot.com',
+    databaseURL: "https://medistock-74644-default-rtdb.asia-southeast1.firebasedatabase.app",
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

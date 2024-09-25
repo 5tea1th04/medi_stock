@@ -3,10 +3,12 @@ import 'package:medi_stock/Screens/login_screen.dart';
 import 'package:medi_stock/Screens/notification_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
 import 'package:medi_stock/Screens/stockAnalysis.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'UserWidgets/bottom_navigation_bar.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -19,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: LoginScreen.id,
+      initialRoute: MyBottomNavigationBar.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => OrderScreen(),

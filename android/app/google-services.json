@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "647686125492",
+    "project_id": "medistock-74644",
+    "storage_bucket": "medistock-74644.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647686125492:android:09b8e3778a5e949aa6e4e1",
+        "android_client_info": {
+          "package_name": "com.MediStock.medi_stock"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNKp1lyN-RCalag-6WwsQX1PCAcpIQEOI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

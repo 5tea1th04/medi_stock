@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:medi_stock/Screens/notification_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
+import 'package:medi_stock/Screens/stockAnalysis.dart';
 
 import 'UserWidgets/bottom_navigation_bar.dart';
 
@@ -17,11 +18,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: MyBottomNavigationBar.id,
+      initialRoute: StockAnalysis.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => OrderScreen(),
         MyBottomNavigationBar.id : (context) => MyBottomNavigationBar(),
+        StockAnalysis.id : (context) => StockAnalysis(),
       },
     );
   }

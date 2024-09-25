@@ -34,7 +34,7 @@ class _NewProfileScreenState extends State<NewProfileScreen> {
       ),
     );
 
-    _dbRef = FirebaseDatabase.instanceFor(app: app).ref(); // Set the database reference
+    _dbRef = FirebaseDatabase.instanceFor(app: app).ref().child('users'); // Set the database reference to 'users' node
   }
 
   // Function to save data to Firebase
@@ -43,8 +43,9 @@ class _NewProfileScreenState extends State<NewProfileScreen> {
     String location = _locationController.text;
 
     if (name.isNotEmpty && location.isNotEmpty) {
-      String userId = _dbRef.push().key!;
+      String userId = _dbRef.push().key!; // Generate a unique key for the new user
 
+      // Save the user data to Firebase Realtime Database under the 'users' node
       _dbRef.child(userId).set({
         'name': name,
         'location': location,

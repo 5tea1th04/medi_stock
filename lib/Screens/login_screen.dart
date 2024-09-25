@@ -1,25 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/new_profile_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
+import 'package:medi_stock/Utilities/authServices.dart';
+import 'package:medi_stock/Utilities/constants.dart';
 
-const kInputDecoration = InputDecoration(
-  hintText: '',
-  hintStyle: TextStyle(color : Colors.white70),
-  contentPadding:
-  EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.all(Radius.circular(32.0)),
-  ),
-  enabledBorder: OutlineInputBorder(
-    borderSide:
-    BorderSide(color: Colors.white, width: 1.0),
-    borderRadius: BorderRadius.all(Radius.circular(32.0)),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderSide:
-    BorderSide(color: Colors.white, width: 2.0),
-    borderRadius: BorderRadius.all(Radius.circular(32.0)),
-  ),
-);
 
 
 class LoginScreen extends StatefulWidget {
@@ -31,6 +15,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -67,6 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 TextField(
+                  controller: _emailController,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.emailAddress,
                   decoration: kInputDecoration.copyWith(hintText: 'Email'),
@@ -75,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 15.0,
                 ),
                 TextField(
+                  controller: _passwordController,
                   textAlign: TextAlign.center,
                   obscureText: true,
                   decoration: kInputDecoration.copyWith(hintText: 'Password'),
@@ -84,10 +73,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 RoundedButton(
                   buttonColor: Colors.white,
-                  buttonFunction: () {
-                    Navigator.popAndPushNamed(context, OrderScreen.id);
+                  buttonFunction: () async{
+                    final message = await AuthService().login(email: _emailController.text, password: _passwordController.text);
+                    if(message!.contains("Success")) {
+                      Navigator.popAndPushNamed(context, NewProfileScreen.id);
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                   },
                   buttonText: 'Login',
+                ),
+                RoundedButton(
+                  buttonColor: Colors.white,
+                  buttonFunction: () async{
+                    final message = await AuthService().registration(email: _emailController.text, password: _passwordController.text);
+                    if(message!.contains("Success")) {
+                      Navigator.popAndPushNamed(context, NewProfileScreen.id);
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+                  },
+                  buttonText: 'Register',
                 ),
                 SizedBox(
                   height: 30.0,

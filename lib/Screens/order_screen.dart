@@ -244,6 +244,7 @@ class _OrderScreenState extends State<OrderScreen> {
                   print('Distributor: $selectedDistributor');
                   print('Medicines: $selectedMedicines');
                   // You can add your order submission logic here, such as sending the order data to a server or Firebase
+
                 },
                 child: Text('Order Now'),
               ),

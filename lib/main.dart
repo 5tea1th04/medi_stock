@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: OrderScreenDistributer.id,
+      initialRoute: OrderScreen.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => NotificationScreen(),
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         HomeScreen.id : (context) => HomeScreen(),
         OrderScreenDistributer.id  :(context) => OrderScreenDistributer(),
         PriceComparisonScreen.id : (context) => PriceComparisonScreen(),
-        OrderScreenDistributer.id : (context) => OrderScreenDistributer(),
+        OrderScreen.id : (context) => OrderScreen(),
       },
     );
   }

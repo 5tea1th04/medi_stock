@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-
 import '../UserWidgets/bottom_navigation_bar.dart';
-import '../Utilities/constants.dart';class PriceComparisonScreen extends StatefulWidget {
+import '../Utilities/constants.dart';
+import 'order_screen.dart'; // Make sureto import the OrderScreen
+
+class PriceComparisonScreen extends StatefulWidget {
   static String id = "Distributor_screen";
+
   const PriceComparisonScreen({super.key});
 
   @override
@@ -16,7 +19,8 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
   final TextEditingController _medicineController = TextEditingController();
   String? _cheapestDistributor;
-  double? _lowestPrice;String? _location;
+  double?_lowestPrice;
+  String? _location;
   bool _isLoading = false;
   Map<String, int> _suggestedMedicines = {};
   List<String> _medicineNames = []; // List to store medicinenames from database
@@ -45,7 +49,8 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
 
         setState(() {
           _suggestedMedicines = filteredMedicines;
-        });} else {
+        });
+      } else {
         print("Error: No data exists for medicines.");
       }
     } catch (error) {
@@ -110,7 +115,7 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
           _isLoading = false;
         });
       } else {
-        print("Error: No distributorsdata exists.");
+        print("Error: No distributors data exists.");
         setState(() {
           _isLoading = false;
         });
@@ -125,7 +130,8 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
 
   void showAllDistributors() async {
     try {
-      DataSnapshot snapshot = await _databaseReference.child('distributors').get();
+      DataSnapshot snapshot =
+      await _databaseReference.child('distributors').get();
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
 
@@ -144,7 +150,8 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
                     final distributor = data[key] as Map<dynamic, dynamic>;
                     final name = distributor['name'] as String;
                     final location = distributor['location'] as String;
-                    final medicines = distributor['medicines'] as Map<dynamic, dynamic>;
+                    final medicines =
+                    distributor['medicines'] as Map<dynamic, dynamic>;
 
                     return ExpansionTile(
                       title: Text(name),
@@ -155,7 +162,8 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
 
                         return ListTile(
                           title: Text(medicineName),
-                          trailing: Text('Price: \$${price.toStringAsFixed(2)}'),
+                          trailing:
+                          Text('Price: \$${price.toStringAsFixed(2)}'),
                         );
                       }).toList(),
                     );
@@ -186,99 +194,116 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
           title: Text('Price Comparison'),
         ),
         body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-              // Autocomplete TextField for medicine names
-              Autocomplete<String>(
-              optionsBuilder: (TextEditingValue textEditingValue) {
-            if (textEditingValue.text == '') {
-            return const Iterable<String>.empty();
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+          // Autocomplete TextField for medicine names
+          Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text == '') {
+        return const Iterable<String>.empty();
+        }
+        return _medicineNames.where((String option) {
+        return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+        });
+        },
+          onSelected: (String selection) {
+            _medicineController.text = selection;
+            // You can perform actions here when a medicine is selected,
+            // such as fetching details from the database.
+          },
+          fieldViewBuilder: (
+              BuildContext context,
+              TextEditingController fieldTextEditingController,
+              FocusNode fieldFocusNode,
+              VoidCallback onFieldSubmitted
+              ) {
+            return TextField(
+              controller: fieldTextEditingController,
+              focusNode: fieldFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Enter Medicine Name',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _filteredMedicineNames = _medicineNames
+                      .where((name) => name.toLowerCase().contains(value.toLowerCase()))
+                      .toList();
+                });
+              },
+            );
+          },
+        ),
+        SizedBox(height: 16.0),
+        ElevatedButton(
+          onPressed: () {
+            if (_medicineController.text.isNotEmpty) {
+              comparePrices(_medicineController.text);
             }
-            return _medicineNames.where((String option) {
-            return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-            });
-            },
-              onSelected: (String selection) {
-                _medicineController.text = selection;
-                // You can perform actions here when a medicine is selected,
-                // such as fetching details from the database.
-              },
-              fieldViewBuilder: (
-                  BuildContext context,
-                  TextEditingController fieldTextEditingController,
-                  FocusNode fieldFocusNode,
-                  VoidCallback onFieldSubmitted
-                  ) {
-                return TextField(
-                  controller: fieldTextEditingController,
-                  focusNode: fieldFocusNode,
-                  decoration: InputDecoration(
-                    labelText: 'Enter Medicine Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _filteredMedicineNames = _medicineNames
-                          .where((name) => name.toLowerCase().contains(value.toLowerCase()))
-                          .toList();
-                    });
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                if (_medicineController.text.isNotEmpty) {
-                  comparePrices(_medicineController.text);
-                }
-              },
-              child: Text('Compare Prices'),
-            ),
-            SizedBox(height: 16.0),
-            if (_isLoading)
-        Center(child: CircularProgressIndicator())
+          },
+          child: Text('Compare Prices'),
+        ),
+        SizedBox(height: 16.0),
+        if (_isLoading)
+    Center(child: CircularProgressIndicator())
     else if (_cheapestDistributor != null)
+    Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
     Text(
     'Cheapest Distributor: $_cheapestDistributor\n'
     'Price: \$${_lowestPrice?.toStringAsFixed(2)}\n'
     'Location: $_location',
-    style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),)
+      style:
+      TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+    ),
+      SizedBox(height: 16.0),
+      ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderScreen(
+                cheapestDistributor: _cheapestDistributor,
+              ),
+            ),
+          );},
+        child: Text('Order Now'),
+      ),
+    ],
+    )
         else if (_medicineController.text.isNotEmpty)
-                    Text(
-                      'No distributor found for this medicine.',
-                      style:TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 16.0),
-                    // Display the suggested medicines
-                    Text(
-                      'Suggested Medicines (Less Stock Available)',
-                      style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                    ),
-                    if (_suggestedMedicines.isNotEmpty)
-                      SizedBox( // Wrap with SizedBox for a bounded height
-                        height: 200, // Set a fixed height for the SizedBox
-                        child: ListView.builder( // Use ListView.builder for suggested medicines
-                          itemCount: _suggestedMedicines.length,
-                          itemBuilder: (context, index) {
-                            final entry = _suggestedMedicines.entries.elementAt(index);
-                            return ListTile(
-                              title: Text(entry.key),
-                              subtitle: Text('Stock: ${entry.value}'),
-                            );
-                          },
-                        ),
-                      )
-                    else
-                      Text('No medicines with low stock found.'),
-                    SizedBox(height: 16.0),
-                    TextButton(
+            Text(
+              'Suggested Medicines (Less Stock Available)',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+                SizedBox(
+                  height: 180, // Set a fixed height for the ListView
+                  child: _suggestedMedicines.isNotEmpty
+                      ? ListView.builder( // Use ListView.builder for efficiency
+                    itemCount: _suggestedMedicines.length,
+                    itemBuilder: (context, index) {
+                      final entry = _suggestedMedicines.entries.elementAt(index);
+                      return ListTile(
+                        title: Text(entry.key),
+                        subtitle: Text('Stock: ${entry.value}'),
+                      );
+                    },
+                  )
+                      : Text('No medicines with low stock found.'),
+                ),
+                Spacer(),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: TextButton(
                       onPressed: showAllDistributors,
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
                         ),
@@ -289,10 +314,9 @@ class _PriceComparisonScreenState extends State<PriceComparisonScreen> {
                         style: TextStyle(color: Colors.white, fontSize: 16.0),
                       ),
                     ),
-                    SizedBox(height: 16.0), // Add spacing at the bottom
-                  ],
-              ),
-            ),
+                  ),
+                ),],
+          ),
         ),
     );
   }

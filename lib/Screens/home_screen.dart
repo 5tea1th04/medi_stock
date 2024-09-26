@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:medi_stock/UserWidgets/bottom_navigation_bar.dart';
-import 'package:medi_stock/Utilities/constants.dart';
 
 import '../UserWidgets/bottom_navigation_bar.dart';
+import '../Utilities/constants.dart';
+
 
 class HomeScreen extends StatefulWidget {
   static String id = "home_screen";
@@ -105,28 +105,49 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Home Screen',style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+        title: Text('Home Screen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         backgroundColor: Colors.blueAccent,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              userName != null
-                  ? Text('Name: $userName')
-                  : ElevatedButton(
-                onPressed: showUserDetailsDialog,
-                child: Text('Enter your details'),
-              ),
-              pharmacyName != null
-                  ? Text('Pharmacy Name: $pharmacyName')
-                  : Container(),
-              location != null
-                  ? Text('Location: $location')
-                  :Container(),
-            ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  "assets/WhatsApp Image 2024-09-26 at 13.27.57.jpeg",  // Corrected the path
+                  height: 200,
+                ),
+                Text('MediStock', style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold)),
+                SizedBox(height: 60),
+
+                userName != null
+                    ? Text('Welcome, $userName!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
+                    : ElevatedButton(
+                  onPressed: showUserDetailsDialog,
+                  child: Text('Enter your details'),
+                ),
+                SizedBox(height: 8),
+                pharmacyName != null
+                    ? Text('Pharmacy Name: $pharmacyName', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                    : Container(),
+                location != null
+                    ? Text('Location: $location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+                    : Container(),
+                const SizedBox(height: 20),
+                const Text(
+                  'MediStock is a simple, easy-to-use web app that helps pharmacy owners and suppliers manage their supplies better. '
+                      'With real-time stock tracking and automatic order updates, it ensures stock replenishment, minimizes shortages, '
+                      'and reduces overstock. MediStock makes it easier for pharmacy owners to keep their shelves full, save time, and '
+                      'work more smoothly with their suppliers—all in one place.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16,fontStyle:FontStyle.italic,),
+                ),
+
+              ],
+            ),
           ),
         ),
       ),

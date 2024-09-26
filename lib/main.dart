@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: OrderScreen.id,
+      initialRoute: LoginScreen.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => NotificationScreen(),

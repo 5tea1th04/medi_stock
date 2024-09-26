@@ -1,8 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:pay/pay.dart';
 
 import '../UserWidgets/bottom_navigation_bar.dart';
 import '../Utilities/constants.dart';
+
+final _paymentConfiguration = PaymentConfiguration.fromJsonString('''
+{
+  "provider": "google_pay",
+  "data": {
+    "environment": "TEST",
+    "apiVersion": 2,
+    "apiVersionMinor": 0,
+    "allowedPaymentMethods": [{
+      "type": "CARD",
+      "parameters": {
+        "allowedAuthMethods": ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+        "allowedCardNetworks": ["VISA", "MASTERCARD"]
+      },
+      "tokenizationSpecification": {
+        "type": "PAYMENT_GATEWAY",
+        "parameters": {
+          "gateway": "example",
+          "gatewayMerchantId": "exampleGatewayMerchantId"}
+      }
+    }]
+  }
+}
+''');
+
+const _paymentItems = [
+  PaymentItem(
+    label: 'Total',
+    amount: '99.99',
+    status: PaymentItemStatus.final_price,
+  )
+];
 
 class OrderScreen extends StatefulWidget {
   static String id = "order_screen";
@@ -17,7 +50,7 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  static int screen_num = nameNavigation.indexOf(OrderScreen.id);
+  static int screenNum = nameNavigation.indexOf(OrderScreen.id);
 
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
   String? selectedDistributor;
@@ -37,13 +70,13 @@ class _OrderScreenState extends State<OrderScreen> {
 
   void fetchDistributorsData() async {
     DataSnapshot snapshot =
-    await _databaseReference.child('distributors').get();
+        await _databaseReference.child('distributors').get();
     if (snapshot.exists) {
       final data = snapshot.value as Map<dynamic, dynamic>;
       Map<String, Map<String, dynamic>> distributorsMap = {};
       data.forEach((key, value) {
         distributorsMap[key as String] =
-        Map<String, dynamic>.from(value as Map);
+            Map<String, dynamic>.from(value as Map);
       });
 
       setState(() {
@@ -103,7 +136,7 @@ class _OrderScreenState extends State<OrderScreen> {
       final distributor = distributorData.values
           .firstWhere((d) => d['name'] == distributorName);
       final distributorMedicines =
-      distributor['medicines'] as Map<dynamic, dynamic>;
+          distributor['medicines'] as Map<dynamic, dynamic>;
       lowStockMedicines.forEach((medicine, count) {
         if (distributorMedicines.containsKey(medicine)) {
           selectedMedicines.add({'medicine': medicine, 'count': 1});
@@ -112,11 +145,16 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
+  void onGooglePayResult(paymentResult) {
+    // Send the payment token to your server to process the payment.
+    debugPrint(paymentResult.toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: PersistentBottomNavBar(
-        selectedIndex: screen_num,
+        selectedIndex: screenNum,
         onItemTapped: (int value) {
           Navigator.popAndPushNamed(context, nameNavigation[value]);
         },
@@ -156,7 +194,7 @@ class _OrderScreenState extends State<OrderScreen> {
             ),
             SizedBox(height: 20),
 
-// Medicine Dropdowns with Add/Remove Buttons and Count
+            // Medicine Dropdowns with Add/Remove Buttons and Count
             Expanded(
               child: ListView.builder(
                 itemCount: selectedMedicines.length,
@@ -233,20 +271,18 @@ class _OrderScreenState extends State<OrderScreen> {
                 ),
               ],
             ),
-
-// Order Now Button
+            // Order Now Button
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle order submission
-                  print('Order submitted:');
-                  print('Distributor: $selectedDistributor');
-                  print('Medicines: $selectedMedicines');
-                  // You can add your order submission logic here, such as sending the order data to a server or Firebase
-
-                },
-                child: Text('Order Now'),
+              child: GooglePayButton(
+                paymentConfiguration: _paymentConfiguration,
+                paymentItems: _paymentItems,
+                type: GooglePayButtonType.pay,
+                margin: const EdgeInsets.only(top: 15.0),
+                onPaymentResult: onGooglePayResult,
+                loadingIndicator: const Center(
+                  child: CircularProgressIndicator(),
+                ),
               ),
             ),
           ],

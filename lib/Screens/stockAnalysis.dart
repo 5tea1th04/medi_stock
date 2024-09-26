@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -11,32 +10,16 @@ class StockAnalysis extends StatefulWidget {
   const StockAnalysis({super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _StockAnalysis();
-  }
+  State<StockAnalysis> createState() => _StockAnalysisState();
 }
 
-class _StockAnalysis extends State<StockAnalysis> {
-  late DatabaseReference databaseRef;
+class _StockAnalysisState extends State<StockAnalysis> {
+  final databaseRef = FirebaseDatabase.instance.ref().child('medicine');
   static int num = nameNavigation.indexOf(StockAnalysis.id);
 
   TextEditingController _searchController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _stockController = TextEditingController();
-
-  Future<void> initializeFirebase() async {
-    final FirebaseApp app = await Firebase.initializeApp(
-      name: 'myApp', // Name your Firebase app instance
-      options: FirebaseOptions(
-        apiKey: "your_api_key", // Your API key
-        appId: "your_app_id", // Your App ID
-        messagingSenderId: "your_messaging_sender_id", // Your Messaging Sender ID
-        projectId: "your_project_id", // Your Project ID
-        databaseURL: "https://medistock-74644-default-rtdb.asia-southeast1.firebasedatabase.app", // Your Database URL
-      ),
-    );
-    databaseRef = FirebaseDatabase.instanceFor(app: app).ref().child('medicine');
-  }
 
   List<Map<String, dynamic>> _items = [];
   List<Map<String, dynamic>> _filteredItems = [];
@@ -46,30 +29,22 @@ class _StockAnalysis extends State<StockAnalysis> {
   @override
   void initState() {
     super.initState();
-    initializeFirebase().then((_) { // Ensure initializeFirebase completes
-      _loadItems();
-    });
-    _searchController.addListener(() {
-      _filterItems();
-    });
+    _loadItems();
+    _searchController.addListener(_filterItems);
   }
 
   void _loadItems() {
     databaseRef.onValue.listen((event) {
       final data = event.snapshot.value;
       if (data != null) {
-        final Map<dynamic, dynamic> map = data as Map<dynamic, dynamic>;
-        final List<Map<String, dynamic>> loadedItems = [];
-        map.forEach((key, value) {
-          loadedItems.add({
-            'id': key,
-            'name': key, // Use the key as the name
-            'stock': value, // Use the value as the stock
-          });
-        });
+        final medicines = (data as Map<dynamic, dynamic>).entries.map((entry) => {
+          'id': entry.key,
+          'name': entry.key,
+          'stock': entry.value,
+        }).toList();
         setState(() {
-          _items = loadedItems;
-          _filteredItems = loadedItems;
+          _items = medicines;
+          _filteredItems = medicines;
         });
       } else {
         setState(() {
@@ -84,55 +59,32 @@ class _StockAnalysis extends State<StockAnalysis> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredItems = _items
-          .where((item) =>
-          item['name'].toString().toLowerCase().contains(query))
-          .toList();
-    });
+          .where((item) => item['name'].toString().toLowerCase().contains(query))
+          .toList();});
   }
 
   void _addItem(String name, int stock) {
-    final newItem = {
-      'name': name,
-      'stock': stock,
-    };
     databaseRef.child(name).set(stock).then((_) {
-      setState(() {
-        _items.add({
-          'id': name,
-          'name': name,
-          'stock': stock,
-        });
-        _filteredItems = List.from(_items); // Update _filteredItems
-      });
+      _loadItems(); // Reload items after adding
     });
   }
 
-  // Update stock of the item
   void _updateItem(String id, int stock) {
     databaseRef.child(id).set(stock).then((_) {
-      setState(() {
-        _items = _items.map((item) {
-          if (item['id'] == id) {
-            return {'id': id, 'name': id, 'stock': stock};
-          }
-          return item;
-        }).toList();
-        _filteredItems = _filteredItems.map((item) {
-          if (item['id'] == id) {
-            return {'id': id, 'name': id, 'stock': stock};
-          }
-          return item;
-        }).toList();
-        _selectedMedicine = null; // Clear the selected medicine after update
-      });
+      _loadItems(); // Reload items after updating
+      _selectedMedicine = null;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: PersistentBottomNavBar(selectedIndex: num, onItemTapped: (int value) { Navigator.popAndPushNamed(context, nameNavigation[value]); },),
-
+      bottomNavigationBar: PersistentBottomNavBar(
+        selectedIndex: num,
+        onItemTapped: (int value) {
+          Navigator.popAndPushNamed(context, nameNavigation[value]);
+        },
+      ),
       appBar: AppBar(
         title: Text('Stock Details'),
       ),
@@ -151,10 +103,11 @@ class _StockAnalysis extends State<StockAnalysis> {
           const Row(
             children: [
               Expanded(
-                  child: Text(
-                    "  Medicine",
-                    style: TextStyle(fontSize: 18),
-                  )),
+                child: Text(
+                  "  Medicine",
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
               Text(
                 "Stock  ",
                 style: TextStyle(fontSize: 18),
@@ -167,186 +120,124 @@ class _StockAnalysis extends State<StockAnalysis> {
                 : ListView.builder(
               itemCount: _filteredItems.length,
               itemBuilder: (context, index) {
+                final item = _filteredItems[index];
+                final isLowStock = item['stock'] < 80;
                 return ListTile(
                   title: Row(
                     children: [
                       Expanded(
-                        child: _filteredItems[index]['stock'] < 80
-                            ? Text(
-                          _filteredItems[index]['name'],
-                          style: const TextStyle(color: Colors.red),
-                        )
-                            : Text(_filteredItems[index]['name']),
+                        child: Text(
+                          item['name'],
+                          style: TextStyle(color: isLowStock ? Colors.red : null),
+                        ),
                       ),
-                      _filteredItems[index]['stock'] < 80
-                          ? Text(
-                        _filteredItems[index]['stock'].toString(),
-                        style: const TextStyle(color: Colors.red),
-                      )
-                          : Text(_filteredItems[index]['stock'].toString()),
+                      Text(
+                        item['stock'].toString(),
+                        style: TextStyle(color: isLowStock ? Colors.red : null),
+                      ),
                     ],
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _selectedMedicine = _filteredItems[index];
-                    });
-                  },
-                  selected: _selectedMedicine != null &&
-                      _selectedMedicine!['id'] == _filteredItems[index]['id'],
+                  ),onTap: () {
+                  setState(() {
+                    _selectedMedicine = item;
+                  });
+                },
+                  selected: _selectedMedicine == item,
                   selectedTileColor: Colors.grey[300],
                 );
               },
             ),
           ),
-          _selectedMedicine != null
-              ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Text('Selected Medicine: ${_selectedMedicine!['name']}'),
-                Text('Current Stock: ${_selectedMedicine!['stock']}'),
-                ElevatedButton(
-                  onPressed: () {
-                    _showUpdateDialog(
-                        _selectedMedicine!['id'], _selectedMedicine!['stock']);
-                  },
-                  child: Text('Edit Stock'),
-                ),
-              ],
+          if (_selectedMedicine != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text('Selected Medicine: ${_selectedMedicine!['name']}'),
+                  Text('Current Stock: ${_selectedMedicine!['stock']}'),
+                  ElevatedButton(
+                    onPressed: () {
+                      _showUpdateDialog(
+                          _selectedMedicine!['id'], _selectedMedicine!['stock']);
+                    },
+                    child: Text('Edit Stock'),
+                  ),
+                ],
+              ),
             ),
-          )
-              : Container(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddDialog();
-        },
+        onPressed: _showAddDialog,
         child: Icon(Icons.add),
       ),
     );
   }
 
-  // Show dialog to update stock
   void _showUpdateDialog(String id, int stock) {
     _nameController.text = id;
     _stockController.text = stock.toString();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          elevation: 0.0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            padding: EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Medicine Name'),
-                    controller: _nameController,
-                    readOnly: true,
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Stock'),
-                    controller: _stockController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a stock quantity';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _updateItem(
-                            _nameController.text, int.parse(_stockController.text));
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: Text('Update Stock'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    _showFormDialog('Update Stock', () {
+      if (_formKey.currentState!.validate()) {
+        _updateItem(_nameController.text, int.parse(_stockController.text));
+        Navigator.pop(context);
+      }
+    });
   }
 
-  // Show dialog to add a new item
   void _showAddDialog() {
     _nameController.clear();
     _stockController.clear();
+    _showFormDialog('Add Item', () {
+      if (_formKey.currentState!.validate()) {
+        _addItem(_nameController.text, int.parse(_stockController.text));
+        Navigator.pop(context);
+      }
+    });
+  }
 
+  void _showFormDialog(String title, VoidCallback onSubmit) {
     showDialog(
       context: context,
       builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          elevation: 0.0,
-          backgroundColor: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            padding: EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Name'),
-                    controller: _nameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a name';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Stock'),
-                    controller: _stockController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a stock quantity';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 20.0),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        _addItem(
-                            _nameController.text, int.parse(_stockController.text));
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: Text('Add Item'),
-                  ),
-                ],
-              ),
+        return AlertDialog(
+          title: Text(title),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Name'),
+                  controller: _nameController,validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
+                ),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Stock'),
+                  controller: _stockController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a stock quantity';
+                    }
+                    return null;
+                  },
+                ),
+              ],
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: onSubmit,
+              child: Text('Submit'),
+            ),
+          ],
         );
       },
     );

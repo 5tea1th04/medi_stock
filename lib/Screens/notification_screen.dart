@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 
 import '../UserWidgets/bottom_navigation_bar.dart';
 import '../Utilities/constants.dart';
@@ -12,38 +12,37 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
+  final databaseRef = FirebaseDatabase.instance.ref().child('medicine');
   List<Map<String, dynamic>> lowStockMedicines = [];
   static int num = nameNavigation.indexOf(NotificationScreen.id);
-
 
   @override
   void initState() {
     super.initState();
-    fetchLowStockMedicines();
+    _fetchLowStockMedicines();
   }
 
-  void fetchLowStockMedicines() async {
-    DataSnapshot snapshot = await _databaseReference.child('medicine').get();
-    Map<dynamic, dynamic> medicines = snapshot.value as Map<dynamic, dynamic>;
-
-    List<Map<String, dynamic>> tempList = [];
-    medicines.forEach((key, value) {
-      if (value < 80) {
-        tempList.add({'name': key, 'stock': value});
-      }
-    });
-
-    setState(() {
-      lowStockMedicines = tempList;
-    });
+  void _fetchLowStockMedicines() async {
+    DataSnapshot snapshot = await databaseRef.get();
+    if (snapshot.exists) {
+      Map<dynamic, dynamic> medicines = snapshot.value as Map<dynamic, dynamic>;
+      lowStockMedicines = medicines.entries
+          .where((entry) => entry.value < 80)
+          .map((entry) => {'name': entry.key, 'stock': entry.value})
+          .toList();
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: PersistentBottomNavBar(selectedIndex: num, onItemTapped: (int value) { Navigator.popAndPushNamed(context, nameNavigation[value]); },),
-
+      bottomNavigationBar: PersistentBottomNavBar(
+        selectedIndex: num,
+        onItemTapped: (int value) {
+          Navigator.popAndPushNamed(context, nameNavigation[value]);
+        },
+      ),
       appBar: AppBar(
         title: Text('Low Stock Notifications'),
       ),
@@ -54,9 +53,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(lowStockMedicines[index]['name']),
-            subtitle:
-            Text('Low stock: ${lowStockMedicines[index]['stock']} remaining'),
-            trailing: Icon(Icons.warning, color: Colors.red),
+            subtitle: Text(
+                'Low stock: ${lowStockMedicines[index]['stock']} remaining'),
+            trailing: Icon(Icons.warning,color: Colors.red),
           );
         },
       ),

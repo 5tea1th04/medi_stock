@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:medi_stock/Screens/Distributor/order_screen_distributer.dart';
 import 'package:medi_stock/Screens/delivery_screen.dart';
 import 'package:medi_stock/Screens/home_screen.dart';
 import 'package:medi_stock/Screens/login_screen.dart';
-import 'package:medi_stock/Screens/new_profile_screen.dart';
+//import 'package:medi_stock/Screens/new_profile_screen.dart';
 import 'package:medi_stock/Screens/notification_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
 import 'package:medi_stock/Screens/stockAnalysis.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
 
       theme: ThemeData.light(),
       debugShowCheckedModeBanner: false,
-      initialRoute: LoginScreen.id,
+      initialRoute: NotificationScreen.id,
       routes: {
         OrderScreen.id : (context)=> OrderScreen(),
         NotificationScreen.id : (context) => NotificationScreen(),
@@ -33,6 +34,8 @@ class MyApp extends StatelessWidget {
         // NewProfileScreen.id : (context) => NewProfileScreen(),
         DeliveryScreen.id : (context) => DeliveryScreen(),
         HomeScreen.id : (context) => HomeScreen(),
+        OrderScreenDistributer.id  :(context) => OrderScreenDistributer(),
+
       },
     );
   }

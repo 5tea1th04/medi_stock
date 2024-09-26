@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medi_stock/Screens/Distributor/order_screen_distributer.dart';
-import 'package:medi_stock/Screens/delivery_screen.dart';
+import 'package:medi_stock/Screens/price_compare_screen.dart';
 import 'package:medi_stock/Screens/home_screen.dart';
 import 'package:medi_stock/Screens/login_screen.dart';
 //import 'package:medi_stock/Screens/new_profile_screen.dart';
@@ -32,9 +32,9 @@ class MyApp extends StatelessWidget {
         StockAnalysis.id : (context) => StockAnalysis(),
         LoginScreen.id : (context) => LoginScreen(),
         // NewProfileScreen.id : (context) => NewProfileScreen(),
-        DeliveryScreen.id : (context) => DeliveryScreen(),
         HomeScreen.id : (context) => HomeScreen(),
         OrderScreenDistributer.id  :(context) => OrderScreenDistributer(),
+        PriceComparisonScreen.id : (context) => PriceComparisonScreen(),
 
       },
     );

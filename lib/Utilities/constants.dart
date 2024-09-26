@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medi_stock/Screens/delivery_screen.dart';
+import 'package:medi_stock/Screens/price_compare_screen.dart';
 import 'package:medi_stock/Screens/home_screen.dart';
 import 'package:medi_stock/Screens/notification_screen.dart';
 import 'package:medi_stock/Screens/order_screen.dart';
@@ -32,5 +32,5 @@ const kInputDecoration = InputDecoration(
   NotificationScreen.id,
   StockAnalysis.id,
   OrderScreen.id,
-  DeliveryScreen.id,
+  PriceComparisonScreen.id,
 ];

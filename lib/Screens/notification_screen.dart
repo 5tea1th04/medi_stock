@@ -47,15 +47,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
         title: Text('Low Stock Notifications'),
       ),
       body: lowStockMedicines.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+        child: Text(
+          'No low stock medicines.',
+          style: TextStyle(fontSize: 18),
+        ),
+      )
           : ListView.builder(
         itemCount: lowStockMedicines.length,
         itemBuilder: (context, index) {
           return ListTile(
             title: Text(lowStockMedicines[index]['name']),
-            subtitle: Text(
-                'Low stock: ${lowStockMedicines[index]['stock']} remaining'),
-            trailing: Icon(Icons.warning,color: Colors.red),
+            subtitle: Text('Low stock: ${lowStockMedicines[index]['stock']} remaining'),
+            trailing: Icon(Icons.warning, color: Colors.red),
           );
         },
       ),
